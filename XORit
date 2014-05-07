@@ -1,0 +1,10 @@
+{NeoBook Function}
+Version=5.80
+Language=VBScript
+Param=[%1]|Number|Param1
+Param=[%2]|Number|Param2
+Param=[%3]|Variable|Result
+{End}
+result = [%1] xor [%2]
+
+publication.nbSetVar "[%3]", result

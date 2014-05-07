@@ -1,0 +1,55 @@
+{NeoBook Function}
+Version=5.80
+Language=NeoBook
+Param=[%1]|Text|Hash string
+Param=[%2]|Number|Length to fold to
+Param=[%3]|Variable|Variable to store result
+{End}
+DefineVar "[HexDigits]" "String" "" "Local" "0123456789abcdef"
+DefineVar "[SourceString]" "String" "" "Local" ""
+DefineVar "[TargetString]" "String" "" "Local" ""
+DefineVar "[i]" "Integer" "" "Local" "0"
+DefineVar "[Pos]" "Integer" "" "Local" "0"
+
+StrLower "[%1]" "[SourceString]"
+StrLen "[SourceString]" "[SourceLen]"
+.fill array
+Loop "1" "[SourceLen]" "[i]"
+  SubStr "[SourceString]" "[i]" "1" "[StringArray[i]]"
+EndLoop
+
+If "[SourceLen]" "<" "[%2]"
+  .pad string with zeroes
+  SetVar "[i]" "[SourceLen]"
+  While "[i]" "<" "[%2]"
+    SetVar "[i]" "[i]+1"
+    SetVar "[StringArray[i]]" "0"
+  EndWhile
+Else
+  .fold larger string
+  SetVar "[Pos]" "[%2]+1"
+  While "[Pos]" "<=" "[SourceLen]"
+    SetVar "[i]" "[Pos]"
+    .modulo
+    While "[i]" ">" "[%2]"
+      SetVar "[i]" "[i]-[%2]"
+    EndWhile
+    .get nibbles, 0-base it
+    SearchStr "[StringArray[i]]" "[HexDigits]" "[Nib1]" ""
+    SetVar "[Nib1]" "[Nib1]-1"
+    SearchStr "[StringArray[Pos]]" "[HexDigits]" "[Nib2]" ""
+    SetVar "[Nib2]" "[Nib2]-1"
+    .NB doesn't have XOR, so use VBS
+    Call "VBScript Functions\XORit" "[Nib1]" "[Nib2]" "[Nib]"
+    SubStr "[HexDigits]" "[Nib]+1" "1" "[XorChar]"
+    SetVar "[StringArray[i]]" "[XorChar]"
+    .DebugBreakPoint ""
+    SetVar "[Pos]" "[Pos]+1"
+  EndWhile
+EndIf
+
+Loop "1" "[%2]" "[i]"
+  SetVar "[TargetString]" "[TargetString][StringArray[i]]"
+EndLoop
+
+SetVar "[%3]" "[TargetString]"
